@@ -1,2 +1,59 @@
-name: 'deploy-cluster-action'
-description: 'Reusable action for deploy-cluster-action'
+name: 'Deploy to Kubernetes Cluster'
+description: 'Complete deployment: updates manifest and sends notification'
+inputs:
+  cluster:
+    description: 'Cluster name (Beta, Japan, Singapore, etc.)'
+    required: true
+  manifest_path:
+    description: 'Path to Kubernetes manifest file'
+    required: true
+  service_name:
+    description: 'Service name in manifest'
+    required: true
+  image_tag:
+    description: 'Docker image tag to deploy'
+    required: true
+  manifest_repo:
+    description: 'Manifest repository (owner/repo)'
+    required: true
+  manifest_ref:
+    description: 'Manifest repository branch'
+    required: true
+  git_pat:
+    description: 'GitHub PAT for manifest repo access'
+    required: true
+  slack_webhook_url:
+    description: 'Slack webhook URL'
+    required: true
+  cluster_emoji:
+    description: 'Emoji for cluster (🧪, 🇯🇵, 🇸🇬, etc.)'
+    required: false
+    default: '🌐'
+  migrate_service_name:
+    description: 'Migration service name (optional, only update migrate section if provided)'
+    required: false
+runs:
+  using: 'composite'
+  steps:
+    - name: Update Kubernetes manifest
+      uses: Doraverse-Workspace/update-manifest-action@v1
+      with:
+        manifest_repo: ${{ inputs.manifest_repo }}
+        manifest_ref: ${{ inputs.manifest_ref }}
+        manifest_path: ${{ inputs.manifest_path }}
+        service_name: ${{ inputs.service_name }}
+        image_tag: ${{ inputs.image_tag }}
+        git_pat: ${{ inputs.git_pat }}
+        commit_message: "Update ${{ inputs.cluster }} cluster - ${{ inputs.image_tag }}"
+        migrate_service_name: ${{ inputs.migrate_service_name }}
+
+    - name: Send deployment notification
+      uses: Doraverse-Workspace/slack-notify-action@v1
+      with:
+        webhook_url: ${{ inputs.slack_webhook_url }}
+        status: success
+        service_name: ${{ inputs.service_name }}
+        cluster: ${{ inputs.cluster }}
+        cluster_emoji: ${{ inputs.cluster_emoji }}
+        tag: ${{ inputs.image_tag }}
+        branch: ${{ github.ref_name }}
