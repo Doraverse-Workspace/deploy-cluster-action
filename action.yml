@@ -36,7 +36,7 @@ runs:
   using: 'composite'
   steps:
     - name: Update Kubernetes manifest
-      uses: Doraverse-Workspace/update-manifest-action@v1
+      uses: Doraverse-Workspace/update-manifest-action@main
       with:
         manifest_repo: ${{ inputs.manifest_repo }}
         manifest_ref: ${{ inputs.manifest_ref }}
@@ -48,7 +48,7 @@ runs:
         migrate_service_name: ${{ inputs.migrate_service_name }}
 
     - name: Send deployment notification
-      uses: Doraverse-Workspace/slack-notify-action@v1
+      uses: Doraverse-Workspace/slack-notify-action@main
       with:
         webhook_url: ${{ inputs.slack_webhook_url }}
         status: success
